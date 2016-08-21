@@ -5,10 +5,10 @@ authors = ["rap2hpoutre <raphaelht@gmail.com>"]
 
 [dependencies]
 env_logger = "0.3"
-futures = "0.1"
-futures-io = "0.1"
-futures-mio = "0.1"
-futures-tls = { version =  "0.1", features = ["force-openssl"]  }
+futures = { git = "https://github.com/alexcrichton/futures-rs" }
+futures-io = { git = "https://github.com/alexcrichton/futures-rs" }
+futures-mio = { git = "https://github.com/alexcrichton/futures-rs" }
+futures-tls = { git = "https://github.com/alexcrichton/futures-rs", features = ["force-openssl"]  }
 httparse = "1.1"
 log = "0.3"
 net2 = { version = "0.2", default-features = false }
