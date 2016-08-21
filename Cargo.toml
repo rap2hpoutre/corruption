@@ -1,0 +1,16 @@
+[package]
+name = "corruption"
+version = "0.1.0"
+authors = ["rap2hpoutre <raphaelht@gmail.com>"]
+
+[dependencies]
+env_logger = "0.3"
+futures = "0.1"
+futures-io = "0.1"
+futures-mio = "0.1"
+futures-tls = { version =  "0.1", features = ["force-openssl"]  }
+httparse = "1.1"
+log = "0.3"
+net2 = { version = "0.2", default-features = false }
+time = "0.1"
+openssl = "0.8"
