@@ -24,6 +24,9 @@ use futures_tls::{ServerContext, TlsStream};
 mod request;
 pub use self::request::{Request, RequestHeaders};
 
+mod router;
+pub use self::router::Router;
+
 mod response;
 pub use self::response::Response;
 
