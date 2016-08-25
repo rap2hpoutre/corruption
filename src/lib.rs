@@ -1,17 +1,14 @@
 extern crate hyper;
-use std::io::{Write, Read};
-use std::sync::Mutex;
-use std::str::FromStr;
-
+use std::io::{Write};
 use hyper::*;
 
-type Route = (method::Method, String, Box<Fn(&server::Request, &server::Response) -> &'static str + Send + Sync>);
+pub type Route = (method::Method, String, Box<Fn(&server::Request, &server::Response) -> &'static str + Send + Sync>);
 
-struct Corruption {
+pub struct Corruption {
     handler: MyHandler
 }
 
-struct MyHandler {
+pub struct MyHandler {
     routes: Vec<Route>
 }
 
