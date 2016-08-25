@@ -1,46 +1,83 @@
-extern crate env_logger;
-extern crate futures;
-extern crate corruption;
-extern crate time;
+extern crate hyper;
+use std::io::{Write, Read};
+use std::sync::Mutex;
+use std::str::FromStr;
 
-use std::net::SocketAddr;
-use std::env;
+use hyper::*;
 
-use corruption::Corruption;
+type Route = (method::Method, String, Box<Fn(&server::Request, &server::Response) -> &'static str + Send + Sync>);
+
+struct Corruption {
+    handler: MyHandler
+}
+
+struct MyHandler {
+    routes: Vec<Route>
+}
+
+impl MyHandler {
+    pub fn new() -> MyHandler {
+        MyHandler {
+            routes: Vec::new()
+        }
+    }
+}
+
+impl server::Handler for MyHandler {
+    fn handle(&self, req: server::Request, mut res: server::Response) {
+
+        println!("Access: {}", req.uri);
+
+        let routes = &self.routes;
+        let mut route = None;
+        for i in routes {
+            if req.method == i.0 && format!("{}", req.uri) == format!("{}", &i.1) {
+                println!("FOUND!");
+                route = Some(i);
+            }
+        }
+
+        let body: &str = match route {
+            None => "<h1>Not Found</h1>",
+            Some(r) => (r.2)(&req, &res)
+        };
+
+        res.headers_mut().set(header::ContentLength(body.as_bytes().len() as u64));
+        res.headers_mut().set(header::Server("Corruption/0.1.0".to_owned()));
+        res.headers_mut().set(header::ContentType(mime::Mime(mime::TopLevel::Text, mime::SubLevel::Html, vec![(mime::Attr::Charset, mime::Value::Utf8)])));
+
+        let mut res = res.start().unwrap();
+        res.write_all(body.as_bytes()).unwrap()
+
+    }
+}
+
+
+impl Corruption {
+
+    pub fn new() -> Corruption {
+        Corruption { handler: MyHandler::new() }
+    }
+
+    fn route<T: 'static + Fn(&server::Request, &server::Response) -> &'static str  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
+        self.handler.routes.push( ( verb, uri.to_string(),Box::new(handler)) )
+    }
+
+    pub fn get<T: 'static + Fn(&server::Request, &server::Response) -> &'static str +Send+Sync>(&mut self, uri: &str, handler: T) {
+        self.route(method::Method::Get, uri, handler)
+    }
+
+    pub fn serve(self) {
+        server::Server::http("127.0.0.1:8080").unwrap().handle( self.handler ).unwrap();
+    }
+}
+
 
 fn main() {
-
-
     let mut c = Corruption::new();
 
-    // c.get("/", |_, res| res.html("index") );
-    // c.post("/", |req, _| { println!("{:?}", req.path()); response.txt("OK") });
+    c.get("/test", |_,_| "str" );
+    c.get("/test2", |req,res| { let a = format!("str - {:?}", &req.method);  &a } );
 
-    c.serve("127.0.0.1:8080");
-
-//
-//
-//
-//
-//    env_logger::init().unwrap();
-//    let addr = env::args().nth(1).unwrap_or("127.0.0.1:8080".to_string());
-//    let addr = addr.parse::<SocketAddr>().unwrap();
-//    Server::new(&addr).serve(|r: Request| {
-//
-//
-//        let mut a = Router::new();
-//        a.get("pouet", |r: Request| println!("a{}", r.path()));
-//        a.get("pouet2", |r: Request| println!("a{}", r.path()));
-//        a.action(0, r);
-//
-//
-//
-//        // assert_eq!(r.path(), "/plaintext");
-//        let mut r = Response::new();
-//        r.header("Content-Type", "text/plain; charset=UTF-8")
-//         .body("Hello, World!");
-//        finished::<_, std::io::Error>(r)
-//    }).unwrap()
-//
-//    */
+    c.serve();
 }
