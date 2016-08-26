@@ -1,8 +1,12 @@
 extern crate hyper;
+extern crate mildew;
+
 use std::io::{Write};
 use hyper::*;
 
-pub type Route = (method::Method, String, Box<Fn(&server::Request, &server::Response) -> &'static str + Send + Sync>);
+pub mod response;
+
+pub type Route = (method::Method, String, Box<Fn(&server::Request) -> self::response::Response + Send + Sync>);
 
 pub struct Corruption {
     handler: MyHandler
@@ -29,22 +33,22 @@ impl server::Handler for MyHandler {
         let mut route = None;
         for i in routes {
             if req.method == i.0 && format!("{}", req.uri) == format!("{}", &i.1) {
-                println!("FOUND!");
                 route = Some(i);
+                break;
             }
         }
 
-        let body: &str = match route {
-            None => "<h1>Not Found</h1>",
-            Some(r) => (r.2)(&req, &res)
+        let mut corruption_response: self::response::Response = match route {
+            None => { *res.status_mut() = status::StatusCode::NotFound; self::response::Response::html("404.html")},
+            Some(r) => (r.2)(&req)
         };
 
-        res.headers_mut().set(header::ContentLength(body.as_bytes().len() as u64));
+        res.headers_mut().set(header::ContentLength(corruption_response.body.as_bytes().len() as u64));
         res.headers_mut().set(header::Server("Corruption/0.1.0".to_owned()));
-        res.headers_mut().set(header::ContentType(mime::Mime(mime::TopLevel::Text, mime::SubLevel::Html, vec![(mime::Attr::Charset, mime::Value::Utf8)])));
+        res.headers_mut().set(corruption_response.content_type);
 
         let mut res = res.start().unwrap();
-        res.write_all(body.as_bytes()).unwrap()
+        res.write_all(corruption_response.body.as_bytes()).unwrap()
 
     }
 }
@@ -56,12 +60,13 @@ impl Corruption {
         Corruption { handler: MyHandler::new() }
     }
 
-    fn route<T: 'static + Fn(&server::Request, &server::Response) -> &'static str  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
-        self.handler.routes.push( ( verb, uri.to_string(),Box::new(handler)) )
+    fn route<T: 'static + Fn(&server::Request) -> self::response::Response  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
+        self.handler.routes.push( ( verb, uri.to_string(),Box::new(handler)) );
     }
 
-    pub fn get<T: 'static + Fn(&server::Request, &server::Response) -> &'static str +Send+Sync>(&mut self, uri: &str, handler: T) {
-        self.route(method::Method::Get, uri, handler)
+    pub fn get<T: 'static + Fn(&server::Request) -> self::response::Response +Send+Sync>(&mut self, uri: &str, handler: T) -> &mut Corruption {
+        self.route(method::Method::Get, uri, handler);
+        self
     }
 
     pub fn serve(self) {

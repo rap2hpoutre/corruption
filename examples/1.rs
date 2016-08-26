@@ -1,13 +1,18 @@
 extern crate corruption;
 
-use corruption::*;
+use corruption::Corruption;
+use corruption::response::Response;
 
 
 fn main() {
-    let mut c = Corruption::new();
+    // Start Corruption
+    let mut corruption = Corruption::new();
 
-    c.get("/test", |_,_| "str" );
-    c.get("/test2", |req,res| { "str2" } );
+    // Declare routes
+    corruption
+        .get("/test", |_| Response::html_str("fefddfd") )
+        .get("/test2", |_| Response::html_str("fefddfd2") );
 
-    c.serve();
+    // Serve it to the world
+    corruption.serve();
 }
