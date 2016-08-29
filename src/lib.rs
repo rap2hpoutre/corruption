@@ -9,7 +9,8 @@ pub mod response;
 pub type Route = (method::Method, String, Box<Fn(&server::Request) -> self::response::Response + Send + Sync>);
 
 pub struct Corruption {
-    handler: MyHandler
+    handler: MyHandler,
+    addr: &'static str,
 }
 
 pub struct MyHandler {
@@ -57,7 +58,7 @@ impl server::Handler for MyHandler {
 impl Corruption {
 
     pub fn new() -> Corruption {
-        Corruption { handler: MyHandler::new() }
+        Corruption { handler: MyHandler::new(), addr: "127.0.0.1:8080" }
     }
 
     fn route<T: 'static + Fn(&server::Request) -> self::response::Response  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
@@ -69,7 +70,12 @@ impl Corruption {
         self
     }
 
+    pub fn listen(&mut self, addr: &'static str) -> &mut Corruption {
+        self.addr = addr;
+        self
+    }
+
     pub fn serve(self) {
-        server::Server::http("127.0.0.1:8080").unwrap().handle( self.handler ).unwrap();
+        server::Server::http(self.addr).unwrap().handle( self.handler ).unwrap();
     }
 }
