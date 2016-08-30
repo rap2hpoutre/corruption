@@ -17,8 +17,8 @@ fn main() {
 
     // Declare routes
     corruption
-        .get("/test", |_| Response::html_str("fefddfd") )
-        .get("/test2", |_| Response::html_str("fefddfd2") );
+        .get("/test", |_| Response::html_str("<p>test ok</p>") )
+        .get("/test2", |_| Response::html_str("<p>test 2 ok</p>") );
 
     // Serve it to the world on 127.0.0.1:8080
     corruption.serve();
