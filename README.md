@@ -1,10 +1,10 @@
-# corruption
-Web framework based on futures-minihttp PoC
+# Corruption
+Undocumented rust web framework made with :footprints:
 
 ## Usage
 Do not use. Dev in progress.
 
-```
+```rust
 extern crate corruption;
 
 use corruption::Corruption;
