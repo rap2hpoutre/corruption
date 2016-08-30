@@ -24,3 +24,9 @@ fn main() {
     corruption.serve();
 }
 ```
+
+# Todo
+ - Requests
+ - Middlewares
+ - Use handlebars
+ - Route parameters
