@@ -2,7 +2,7 @@ use hyper::header::*;
 use hyper::mime::*;
 use mildew;
 use handlebars::Handlebars;
-use rustc_serialize::json::{Json, ToJson};
+use rustc_serialize::json::ToJson;
 
 pub struct Response {
     pub content_type: ContentType,
@@ -22,13 +22,14 @@ impl Response {
         Response::html_str(&Response::file(s))
     }
 
-    pub fn tpl<T>(s: &str, data: T) -> Response where T: ToJson {
+    pub fn tpl_str<T>(s: &str, data: T) -> Response where T: ToJson {
         let handlebars = Handlebars::new();
-        let contents = handlebars.template_render(&Response::file(s), &data).ok().unwrap();
-        Response {
-            body: contents,
-            content_type: ContentType(Mime(TopLevel::Text, SubLevel::Html, vec![(Attr::Charset, Value::Utf8)])),
-        }
+        let contents = handlebars.template_render(s, &data).ok().unwrap();
+        Response::html_str(&contents)
+    }
+
+    pub fn tpl<T>(s: &str, data: T) -> Response where T: ToJson {
+        Response::tpl_str(&Response::file(s), data)
     }
 
     fn file(s: &str) -> String {
