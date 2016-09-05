@@ -29,6 +29,14 @@ pub struct Response {
 }
 
 impl Response {
+
+    pub fn new() -> Response {
+        Response {
+            content_type: ContentType(Mime(TopLevel::Text, SubLevel::Plain, vec![])),
+            body: String::new(),
+        }
+    }
+
     pub fn html_str(s: &str) -> Response {
         Response {
             body: s.to_string(),
