@@ -1,13 +1,15 @@
 extern crate hyper;
 extern crate mildew;
 extern crate handlebars;
+extern crate rustc_serialize;
+extern crate time;
 
 use std::io::{Write};
 use hyper::*;
 
 pub mod response;
 
-pub type Route = (method::Method, String, Box<Fn(&server::Request, &self::response::Response) -> self::response::Response + Send + Sync>);
+pub type Route = (method::Method, String, Box<Fn(&server::Request) -> self::response::Response + Send + Sync>);
 
 pub struct Corruption {
     handler: MyHandler,
@@ -40,9 +42,9 @@ impl server::Handler for MyHandler {
             }
         }
 
-        let mut corruption_response: self::response::Response = match route {
+        let corruption_response: self::response::Response = match route {
             None => { *res.status_mut() = status::StatusCode::NotFound; self::response::Response::html("404.html")},
-            Some(r) => (r.2)(&req, &self::response::Response::new() )
+            Some(r) => (r.2)(&req )
         };
 
         res.headers_mut().set(header::ContentLength(corruption_response.body.as_bytes().len() as u64));
@@ -62,11 +64,11 @@ impl Corruption {
         Corruption { handler: MyHandler::new(), addr: "127.0.0.1:8080" }
     }
 
-    fn route<T: 'static + Fn(&server::Request, &self::response::Response) -> self::response::Response  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
+    fn route<T: 'static + Fn(&server::Request) -> self::response::Response  +Send+Sync>(&mut self, verb: method::Method, uri: &str, handler: T) {
         self.handler.routes.push( ( verb, uri.to_string(),Box::new(handler)) );
     }
 
-    pub fn get<T: 'static + Fn(&server::Request, &self::response::Response) -> self::response::Response +Send+Sync>(&mut self, uri: &str, handler: T) -> &mut Corruption {
+    pub fn get<T: 'static + Fn(&server::Request) -> self::response::Response +Send+Sync>(&mut self, uri: &str, handler: T) -> &mut Corruption {
         self.route(method::Method::Get, uri, handler);
         self
     }
