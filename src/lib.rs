@@ -1,5 +1,6 @@
 extern crate hyper;
 extern crate mildew;
+extern crate handlebars;
 
 use std::io::{Write};
 use hyper::*;
