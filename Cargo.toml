@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["rap2hpoutre <raphaelht@gmail.com>"]
 license = "MIT"
 description = "Undocumented rust web framework"
-repository = "https://github.com/rap2hpoutre/mildew"
+repository = "https://github.com/rap2hpoutre/corruption"
 
 [dependencies]
 hyper = "0.9.10"
