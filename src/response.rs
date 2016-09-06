@@ -2,6 +2,8 @@ use hyper::header::*;
 use hyper::mime::*;
 use mildew;
 use handlebars::Handlebars;
+use rustc_serialize::json;
+use rustc_serialize::Encodable;
 use rustc_serialize::json::ToJson;
 
 pub struct Response {
@@ -30,6 +32,13 @@ impl Response {
 
     pub fn tpl<T>(s: &str, data: T) -> Response where T: ToJson {
         Response::tpl_str(&Response::file(s), data)
+    }
+
+    pub fn json<T>(data: T) -> Response where T: Encodable {
+        Response {
+            body: json::encode(&data).unwrap(),
+            content_type: ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![(Attr::Charset, Value::Utf8)])),
+        }
     }
 
     fn file(s: &str) -> String {

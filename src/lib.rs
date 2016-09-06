@@ -44,7 +44,7 @@ impl server::Handler for MyHandler {
 
         let corruption_response: self::response::Response = match route {
             None => { *res.status_mut() = status::StatusCode::NotFound; self::response::Response::html("404.html")},
-            Some(r) => (r.2)(&req )
+            Some(r) => (r.2)(&req)
         };
 
         res.headers_mut().set(header::ContentLength(corruption_response.body.as_bytes().len() as u64));
